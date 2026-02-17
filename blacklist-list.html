@@ -707,16 +707,16 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
     import { getDatabase, ref, get, push, remove, update } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-database.js";
 
-    const firebaseConfig = {
-     apiKey: "AIzaSyB61QQ7shwSyuI9ymiGciA02WNzVknacLc",
-     authDomain: "dkvsu-2fd2f.firebaseapp.com",
-     databaseURL: "https://dkvsu-2fd2f-default-rtdb.europe-west1.firebasedatabase.app",
-     projectId: "dkvsu-2fd2f",
-     storageBucket: "dkvsu-2fd2f.firebasestorage.app",
-     messagingSenderId: "923064660972",
-     appId: "1:923064660972:web:a6eee33266e055eb7c06c9",
-     measurementId: "G-GJJJ02J9W6"
-    };
+const firebaseConfig = {
+  apiKey: "AIzaSyB61QQ7shwSyuI9ymiGciA02WNzVknacLc",
+  authDomain: "dkvsu-2fd2f.firebaseapp.com",
+  databaseURL: "https://dkvsu-2fd2f-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "dkvsu-2fd2f",
+  storageBucket: "dkvsu-2fd2f.firebasestorage.app",
+  messagingSenderId: "923064660972",
+  appId: "1:923064660972:web:a6eee33266e055eb7c06c9",
+  measurementId: "G-GJJJ02J9W6"
+};
 
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
