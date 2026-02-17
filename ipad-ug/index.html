@@ -1,0 +1,1361 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>УЗ - Система управління</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="icon" href="img/logo.svg" type="image/svg+xml">
+
+    <!-- Firebase SDK (compat) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="tablet-container">
+        <!-- Екран авторизації -->
+        <div class="auth-screen" id="authScreen">
+            <div class="auth-container">
+                <div class="auth-logo">
+                    <img src="img/logo.svg" alt="ДКВС Лого">
+                </div>
+                
+                <!-- Повідомлення про блокування -->
+                <div id="blockedMessage" class="blocked-alert hidden">
+                    <i class="fas fa-ban"></i>
+                    <p>Доступ до системи заблоковано адміністратором.</p>
+                </div>
+
+                <div class="auth-tabs">
+                    <button class="auth-tab active" data-tab="login">Вхід</button>
+                    <button class="auth-tab" data-tab="register">Реєстрація</button>
+                    <button class="auth-tab" data-tab="reset">Відновлення</button>
+                </div>
+                
+                <!-- Форма входу -->
+                <form class="auth-form active" id="loginForm" data-form="login">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="loginEmail" required placeholder="Введіть ваш email">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Пароль</label>
+                        <input type="password" class="form-input" id="loginPassword" required placeholder="Введіть ваш пароль">
+                    </div>
+                    <div class="form-group remember-group">
+                        <label class="remember-checkbox">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="checkmark"></span>
+                            Запам'ятати мене
+                        </label>
+                    </div>
+                    <button type="submit" class="auth-button">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Увійти
+                    </button>
+                </form>
+
+                <!-- Форма реєстрації -->
+                <form class="auth-form" id="registerForm" data-form="register">
+                    <div class="register-grid">
+                        <div class="form-group">
+                            <label class="form-label">Nick Name</label>
+                            <input type="text" class="form-input" id="registerName" required placeholder="Введіть ваш Nick...">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-input" id="registerEmail" required placeholder="Введіть ваш email">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Пароль</label>
+                            <input type="password" class="form-input" id="registerPassword" required placeholder="Введіть пароль">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Підтвердження</label>
+                            <input type="password" class="form-input" id="confirmPassword" required placeholder="Підтвердіть пароль">
+                        </div>
+                    </div>
+                    <button type="submit" class="auth-button">
+                        <i class="fas fa-user-plus"></i>
+                        Зареєструватися як Працівник
+                    </button>
+                </form>
+
+                <!-- Форма скидання пароля -->
+                <form class="auth-form" id="resetForm" data-form="reset">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" id="resetEmail" required placeholder="Введіть ваш email">
+                    </div>
+                    <button type="submit" class="auth-button">
+                        <i class="fas fa-key"></i>
+                        Скинути пароль
+                    </button>
+                </form>
+
+                <div class="auth-footer">
+                    <br><p>© 2025 Усі права захищені.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Головний інтерфейс -->
+        <div class="main-interface" id="mainInterface">
+            <!-- Заголовок -->
+            <header class="header">
+                <div class="logo-section">
+                    <img src="img/logo.svg" alt="ДКВС Лого">
+                    <span class="logo-text">УЗ</span>
+                     <span class="logo-text2">Розробка інтерфейсу, дизайну та логіки: Данило Шульга. Усі авторські права на код належать розробнику. </span>
+                </div>
+
+                <div class="header-actions">
+                     <div class="user-info" id="userProfileBtn" style="cursor: pointer;" title="Налаштування профілю">
+                        <div class="user-avatar" id="userAvatar">У</div>
+                        <div class="user-details">
+                            <div class="user-name" id="userName">Користувач</div>
+                            <div class="user-role" id="userRole">Працівник</div>
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-secondary" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
+                    <button class="btn btn-danger" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Вийти
+                    </button>
+                </div>
+            </header>
+
+            <div class="main-content">
+                <!-- Бічна панель -->
+                <aside class="sidebar" id="sidebar">
+                    <div class="nav-section">
+                        <div class="nav-title">Головне</div>
+                        <a href="#" class="nav-item active" data-view="dashboard" data-roles="worker,deputy,leader,admin">
+                            <i class="fas fa-home"></i>
+                            <span>Панель управління</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-title">Рейси</div>
+                        <a href="#" class="nav-item" data-view="convoy-form" data-roles="worker,deputy,leader,admin">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Новий рейс</span>
+                        </a>
+                        <a href="#" class="nav-item" data-view="convoy-archive" data-roles="worker,deputy,leader,admin">
+                            <i class="fas fa-archive"></i>
+                            <span>Архів рейсів</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-title">Безпека</div>
+                        <a href="#" class="nav-item" data-view="blacklist" data-roles="worker,deputy,leader,admin">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Чорний список</span>
+                        </a>
+                        <a href="#" class="nav-item" data-view="add-blacklist" data-roles="deputy,leader,admin">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Додати до ЧС</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-title">ОТЗ</div>
+                        <a href="#" class="nav-item" data-view="otz-register" data-roles="worker,deputy,leader,admin">
+                            <i class="fas fa-car"></i>
+                            <span>Реєстрація ОТЗ</span>
+                        </a>
+                        <a href="#" class="nav-item" data-view="otz-management" data-roles="deputy,leader,admin">
+                            <i class="fas fa-cogs"></i>
+                            <span>Керування ОТЗ</span>
+                        </a>
+                        <a href="#" class="nav-item" data-view="otz-registered" data-roles="worker,deputy,leader,admin">
+                            <i class="fas fa-list-alt"></i>
+                            <span>Зареєстровані ОТЗ</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-title">Інструктаж</div>
+                        <a href="#" class="nav-item" data-view="briefing-register" data-roles="worker,deputy,leader,admin">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>Реєстр інструктажу</span>
+                        </a>
+                        <a href="#" class="nav-item" data-view="briefing-archive" data-roles="worker,deputy,leader,admin">
+                            <i class="fas fa-archive"></i>
+                            <span>Архів інструктажів</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-title">Персонал</div>
+                        <a href="#" class="nav-item" data-view="staff" data-roles="worker,deputy,leader,admin">
+                            <i class="fas fa-users"></i>
+                            <span>Список персоналу</span>
+                        </a>
+                    </div>
+
+                    <div class="nav-section">
+                        <div class="nav-title">Система</div>
+                        <a href="#" class="nav-item" data-view="activities" data-roles="worker,deputy,leader,admin">
+                            <i class="fas fa-history"></i>
+                            <span>Журнал подій</span>
+                        </a>
+                        <a href="#" class="nav-item" data-view="settings" data-roles="admin">
+                            <i class="fas fa-cog"></i>
+                            <span>Налаштування</span>
+                        </a>
+                    </div>
+                </aside>
+
+                <!-- Контент -->
+                <main class="content">
+                    <!-- Панель управління -->
+                    <div id="dashboard" class="page-content">
+                        <div class="page-header">
+                            <h1 class="page-title">Панель управління</h1>
+                            <p class="page-subtitle">Огляд системи та поточна статистика</p>
+                        </div>
+
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-title">Активні користувачі</div>
+                                    <div class="stat-icon blue">
+                                        <i class="fas fa-users"></i>
+                                    </div>
+                                </div>
+                                <div class="stat-value" id="activeUsers">0</div>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>+12% за тиждень</span>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-title">Конвої сьогодні</div>
+                                    <div class="stat-icon green">
+                                        <i class="fas fa-truck"></i>
+                                    </div>
+                                </div>
+                                <div class="stat-value" id="convoysToday">0</div>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>+5 за день</span>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-title">В чорному списку</div>
+                                    <div class="stat-icon red">
+                                        <i class="fas fa-user-slash"></i>
+                                    </div>
+                                </div>
+                                <div class="stat-value" id="blacklistCount">0</div>
+                                <div class="stat-change negative">
+                                    <i class="fas fa-arrow-down"></i>
+                                    <span>-2 за тиждень</span>
+                                </div>
+                            </div>
+
+                            <div class="stat-card">
+                                <div class="stat-header">
+                                    <div class="stat-title">Зареєстровані ОТЗ</div>
+                                    <div class="stat-icon purple">
+                                        <i class="fas fa-car"></i>
+                                    </div>
+                                </div>
+                                <div class="stat-value" id="otzCount">0</div>
+                                <div class="stat-change positive">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span>+3 за місяць</span>
+                                </div>
+                            </div>
+                            <!-- Замініть ці дві картки в stats-grid -->
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <div class="stat-title">Всього конвоїв</div>
+                                        <div class="stat-icon blue">
+                                            <i class="fas fa-truck-moving"></i>
+                                        </div>
+                                    </div>
+                                    <div class="stat-value" id="totalConvoys">0</div>
+                                    <div class="stat-change positive">
+                                        <i class="fas fa-arrow-up"></i>
+                                        <span>+15% за місяць</span>
+                                    </div>
+                                </div>
+
+                                <div class="stat-card">
+                                    <div class="stat-header">
+                                        <div class="stat-title">Кількість працівників</div>
+                                        <div class="stat-icon purple">
+                                            <i class="fas fa-user-friends"></i>
+                                        </div>
+                                    </div>
+                                    <div class="stat-value" id="totalWorkers">0</div>
+                                    <div class="stat-change neutral">
+                                        <i class="fas fa-arrow-right"></i>
+                                        <span>0% за місяць</span>
+                                    </div>
+                                </div>
+                            </div>
+                     
+
+                        <div class="dashboard-grid">
+                            <div class="card quick-actions-card">
+                                <h3 class="card-title">Швидкі дії</h3>
+                                <div class="quick-actions">
+                                    <button class="btn btn-primary" onclick="showView('convoy-form')">
+                                        <i class="fas fa-plus"></i>
+                                        Створити новий конвой
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="showView('otz-register')">
+                                        <i class="fas fa-car"></i>
+                                        Зареєструвати ОТЗ
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="showView('blacklist')">
+                                        <i class="fas fa-list"></i>
+                                        Переглянути чорний список
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="showView('staff')">
+                                        <i class="fas fa-users"></i>
+                                        Список персоналу
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="card activities-card">
+                                <h3 class="card-title">Останні події</h3>
+                                <div id="recentActivities" class="activities-list">
+                                    <div class="loading">
+                                        <div class="spinner"></div>
+                                        <span>Завантаження...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Форма конвою -->
+                    <div id="convoy-form" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Новий рейс</h1>
+                            <p class="page-subtitle">Реєстрація нового рейсу в системі</p>
+                        </div>
+
+                        <div class="form-container">
+                            <div class="card form-card">
+                                <form id="convoyForm">
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label class="form-label">Учасник №1 *</label>
+                                            <input type="text" class="form-input no-resize" id="convoy1" required placeholder="Введіть нікнейм першого учасника рейсу">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Учасник №2</label>
+                                            <input type="text" class="form-input no-resize" id="convoy2" placeholder="Введіть нікнейм учасника рейсу (необов'язково)">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Учасник №3 *</label>
+                                            <input type="text" class="form-input no-resize" id="prisoner1" required placeholder="Введіть нікнейм учасника рейсу (необов'язково)">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Учасник №4</label>
+                                            <input type="text" class="form-input no-resize" id="prisoner2" placeholder="Введіть нікнейм учасника рейсу (необов'язково)">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="button" class="btn btn-secondary" onclick="showView('dashboard')">
+                                            <i class="fas fa-times"></i>
+                                            Скасувати
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i>
+                                            Зареєструвати конвой
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Архів конвоїв -->
+                    <div id="convoy-archive" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Архів конвоїв</h1>
+                            <p class="page-subtitle">Історія всіх зареєстрованих конвоїв</p>
+                        </div>
+
+                        <div class="table-container">
+                            <div class="table-header">
+                                <h3 class="table-title">Список конвоїв</h3>
+                                <div class="table-actions">
+                                    <div class="search-container">
+                                        <i class="fas fa-search search-icon"></i>
+                                        <input type="text" class="search-input no-resize" id="convoySearch" placeholder="Пошук конвоїв...">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Дата</th>
+                                            <th>Конвоїр №1</th>
+                                            <th>Конвоїр №2</th>
+                                            <th>В'язень №1</th>
+                                            <th>В'язень №2</th>
+                                            <th>Статус</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="convoyTableBody">
+                                        <tr>
+                                            <td colspan="6" class="loading-cell">
+                                                <div class="loading">
+                                                    <div class="spinner"></div>
+                                                    <span>Завантаження даних...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Чорний список -->
+                    <div id="blacklist" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Чорний список</h1>
+                            <p class="page-subtitle">Список осіб, заборонених для участі в конвоях</p>
+                        </div>
+
+                        <div class="table-container">
+                            <div class="table-header">
+                                <h3 class="table-title">Заборонені особи</h3>
+                                <div class="table-actions">
+                                    <div class="search-container">
+                                        <i class="fas fa-search search-icon"></i>
+                                        <input type="text" class="search-input no-resize" id="blacklistSearch" placeholder="Пошук в чорному списку...">
+                                    </div>
+                                    <button class="btn btn-primary" onclick="showView('add-blacklist')" id="addBlacklistBtn" style="display: none;">
+                                        <i class="fas fa-plus"></i>
+                                        Додати
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Нікнейм</th>
+                                            <th>Причина</th>
+                                            <th>Залишилось</th>
+                                            <th>Дії</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="blacklistTableBody">
+                                        <tr>
+                                            <td colspan="5" class="loading-cell">
+                                                <div class="loading">
+                                                    <div class="spinner"></div>
+                                                    <span>Завантаження даних...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Додавання до чорного списку -->
+                    <div id="add-blacklist" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Додати до чорного списку</h1>
+                            <p class="page-subtitle">Внесення нової особи до списку заборонених</p>
+                        </div>
+
+                        <!-- Вкладки для додавання до ЧС -->
+                        <div class="blacklist-tabs">
+                            <button class="blacklist-tab active" data-tab="form">
+                                <i class="fas fa-edit"></i>
+                                Форма внесення
+                            </button>
+                            <button class="blacklist-tab" data-tab="reasons">
+                                <i class="fas fa-list"></i>
+                                Причини та терміни
+                            </button>
+                        </div>
+
+                        <!-- Форма внесення -->
+                        <div id="form-blacklist" class="blacklist-content active">
+                            <div class="card form-card">
+                                <form id="blacklistForm">
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label class="form-label">ID гравця *</label>
+                                            <input type="number" class="form-input no-resize no-arrows" id="playerId" required placeholder="Введіть ID гравця">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Нікнейм *</label>
+                                            <input type="text" class="form-input no-resize" id="nickname" required placeholder="Введіть нікнейм гравця">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Клан</label>
+                                            <input type="text" class="form-input no-resize" id="clan" placeholder="Введіть назву клану (необов'язково)">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Термін (днів) *</label>
+                                            <input type="number" class="form-input no-resize no-arrows" id="days" required min="1" placeholder="Кількість днів блокування">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Причина *</label>
+                                        <textarea class="form-input form-textarea no-resize" maxlength="70" id="reason" required placeholder="Опишіть причину додавання до чорного списку | Макс. клькість символів: 70"></textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Докази (URL) *</label>
+                                        <input type="url" class="form-input no-resize" id="evidenceUrl" required placeholder="Посилання на докази (YouTube, Imgur тощо)">
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="button" class="btn btn-secondary" onclick="showView('blacklist')">
+                                            <i class="fas fa-times"></i>
+                                            Скасувати
+                                        </button>
+                                        <button type="submit" class="btn btn-danger">
+                                            <i class="fas fa-ban"></i>
+                                            Додати до чорного списку
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Причини та терміни -->
+                        <div id="reasons-blacklist" class="blacklist-content">
+                            <div class="card terms-card">
+                                <h3 class="card-title">Рекомендовані терміни</h3>
+                                <div class="terms-list">
+                                    <div class="term-item">
+                                        <div class="term-violation">[1.1.] Напад на колону конвою</div>
+                                        <div class="term-duration">5 днів</div>
+                                    </div>
+                                    <div class="term-item">
+                                        <div class="term-violation">[1.2.] Втеча з ДКВС під час виконання виправних робіт</div>
+                                        <div class="term-duration">7 днів</div>
+                                    </div>
+                                    <div class="term-item">
+                                        <div class="term-violation">[1.3.] Вбивсто працівника ДКВС при виконанні обов'язків </div>
+                                        <div class="term-duration">7 днів</div>
+                                    </div>
+                                    <div class="term-item">
+                                        <div class="term-violation">[1.4.] Проникнення на територію</div>
+                                        <div class="term-duration">6 днів</div>
+                                    </div>
+                                    <div class="term-item">
+                                        <div class="term-violation">[1.5.] Образи співробітника ДКВС</div>
+                                        <div class="term-duration">1-3 дні</div>
+                                    </div>
+                                    <div class="term-item">
+                                        <div class="term-violation">[1.6.] Спроба саботажу чи організації бунту</div>
+                                        <div class="term-duration">5 днів</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Реєстрація ОТЗ -->
+                    <div id="otz-register" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Реєстрація ОТЗ</h1>
+                            <p class="page-subtitle">Подача заявки на реєстрацію особистого транспортного засобу</p>
+                        </div>
+
+                        <div class="form-container">
+                            <div class="card form-card">
+                                <form id="otzForm">
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label class="form-label">Нікнейм *</label>
+                                            <input type="text" class="form-input no-resize" id="otzNickname" required placeholder="Введіть ваш нікнейм">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Колір автомобіля *</label>
+                                            <input type="text" class="form-input no-resize" id="otzColor" required placeholder="Введіть колір автомобіля">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Тонування *</label>
+                                            <select class="form-input" id="otzTinted" required>
+                                                <option value="">Оберіть варіант</option>
+                                                <option value="yes">Так, тоноване</option>
+                                                <option value="no">Ні, не тоноване</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Номерні знаки *</label>
+                                            <input type="text" class="form-input no-resize" id="otzPlates" required placeholder="Введіть номерні знаки">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Технічний паспорт *</label>
+                                        <div class="file-upload-container">
+                                            <input type="file" class="file-input" id="otzTechPassport" accept="image/*" required>
+                                            <label for="otzTechPassport" class="file-upload-label">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <span>Завантажити фото технічного паспорта</span>
+                                            </label>
+                                            <div class="file-preview" id="techPassportPreview"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Водійське посвідчення *</label>
+                                        <div class="file-upload-container">
+                                            <input type="file" class="file-input" id="otzDriverLicense" accept="image/*" required>
+                                            <label for="otzDriverLicense" class="file-upload-label">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <span>Завантажити фото водійського посвідчення</span>
+                                            </label>
+                                            <div class="file-preview" id="driverLicensePreview"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Посвідчення працівника ДКВС *</label>
+                                        <div class="file-upload-container">
+                                            <input type="file" class="file-input" id="otzStaffId" accept="image/*" required>
+                                            <label for="otzStaffId" class="file-upload-label">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <span>Завантажити фото посвідчення ДКВС</span>
+                                            </label>
+                                            <div class="file-preview" id="staffIdPreview"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="form-label">Фото автомобіля *</label>
+                                        <div class="file-upload-container">
+                                            <input type="file" class="file-input" id="otzCarPhotos" accept="image/*" multiple required>
+                                            <label for="otzCarPhotos" class="file-upload-label">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <span>Завантажити фото автомобіля (декілька фото)</span>
+                                            </label>
+                                            <div class="file-preview" id="carPhotosPreview"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="button" class="btn btn-secondary" onclick="showView('dashboard')">
+                                            <i class="fas fa-times"></i>
+                                            Скасувати
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-paper-plane"></i>
+                                            Подати заявку
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Керування ОТЗ -->
+                    <div id="otz-management" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Керування ОТЗ</h1>
+                            <p class="page-subtitle">Розгляд заявок та керування зареєстрованими ОТЗ</p>
+                        </div>
+
+                        <!-- Вкладки керування ОТЗ -->
+                        <div class="otz-management-tabs">
+                            <button class="otz-tab active" data-tab="pending">
+                                <i class="fas fa-clock"></i>
+                                Очікують на схвалення
+                                <span class="tab-badge" id="pendingCount">0</span>
+                            </button>
+                            <button class="otz-tab" data-tab="approved">
+                                <i class="fas fa-check-circle"></i>
+                                Зареєстровані ОТЗ
+                                <span class="tab-badge" id="approvedCount">0</span>
+                            </button>
+                        </div>
+
+                        <!-- Очікують на схвалення -->
+                        <div id="pending-otz" class="otz-content active">
+                            <div class="table-container">
+                                <div class="table-header">
+                                    <h3 class="table-title">Заявки на розгляді</h3>
+                                </div>
+                                
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Дата подачі</th>
+                                                <th>Нікнейм</th>
+                                                <th>Колір авто</th>
+                                                <th>Номерні знаки</th>
+                                                <th>Тонування</th>
+                                                <th>Дії</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="pendingOtzTableBody">
+                                            <tr>
+                                                <td colspan="6" class="loading-cell">
+                                                    <div class="loading">
+                                                        <div class="spinner"></div>
+                                                        <span>Завантаження заявок...</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Зареєстровані ОТЗ -->
+                        <div id="approved-otz" class="otz-content">
+                            <div class="table-container">
+                                <div class="table-header">
+                                    <h3 class="table-title">Схвалені ОТЗ</h3>
+                                </div>
+                                
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Дата схвалення</th>
+                                                <th>Нікнейм</th>
+                                                <th>Колір авто</th>
+                                                <th>Номерні знаки</th>
+                                                <th>Тонування</th>
+                                                <th>Дії</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="approvedOtzTableBody">
+                                            <tr>
+                                                <td colspan="6" class="loading-cell">
+                                                    <div class="loading">
+                                                        <div class="spinner"></div>
+                                                        <span>Завантаження ОТЗ...</span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Зареєстровані ОТЗ (для всіх) -->
+                    <div id="otz-registered" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Зареєстровані ОТЗ</h1>
+                            <p class="page-subtitle">Список всіх зареєстрованих особистих транспортних засобів</p>
+                        </div>
+
+                        <!-- Додаємо пошук для зареєстрованих ОТЗ -->
+                        <div class="table-container">
+                            <div class="table-header">
+                                <h3 class="table-title">Пошук ОТЗ</h3>
+                                <div class="table-actions">
+                                    <div class="search-container">
+                                        <i class="fas fa-search search-icon"></i>
+                                        <input type="text" class="search-input no-resize" id="registeredOtzSearch" placeholder="Пошук за нікнеймом або номерами...">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="otz-grid" id="otzGrid">
+                            <div class="loading">
+                                <div class="spinner"></div>
+                                <span>Завантаження зареєстрованих ОТЗ...</span>
+                            </div>
+                        </div>
+                    </div>
+
+                     <!-- Реєстр інструктажу -->
+                    <div id="briefing-register" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Реєстр інструктажу</h1>
+                            <p class="page-subtitle">Проведення та реєстрація інструктажу для новобранців</p>
+                        </div>
+
+                        <div class="form-container">
+                            <div class="card form-card">
+                                <form id="briefingForm">
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label class="form-label">Nick Name інструктора *</label>
+                                            <input type="text" class="form-input no-resize" id="instructorName" required placeholder="Ваш Nick Name">
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label class="form-label">Nick Name новобранця *</label>
+                                            <input type="text" class="form-input no-resize" id="recruitName" required placeholder="Nick Name новобранця">
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <h3 class="card-title" style="margin-top: 20px; margin-bottom: 15px;">Чек-лист інструктажу</h3>
+                                        <div class="checkbox-group" style="display: flex; flex-direction: column; gap: 15px;">
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="inTelegram">
+                                                <span class="checkbox-custom"></span>
+                                                Чи перебуває новобранець у Telegram чаті ДКВС?
+                                            </label>
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="hasDiscordRole">
+                                                <span class="checkbox-custom"></span>
+                                                Чи отримав роль ДКВС у Discord?
+                                            </label>
+                                            <label class="checkbox-label">
+                                                <input type="checkbox" id="knowsRules">
+                                                <span class="checkbox-custom"></span>
+                                                Чи ознайомлений із правилами ДКВС?
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-actions">
+                                        <button type="button" class="btn btn-secondary" onclick="showView('dashboard')">
+                                            <i class="fas fa-times"></i>
+                                            Скасувати
+                                        </button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-save"></i>
+                                            Зареєструвати інструктаж
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Архів інструктажів -->
+                    <div id="briefing-archive" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Архів інструктажів</h1>
+                            <p class="page-subtitle">Історія всіх проведених інструктажів</p>
+                        </div>
+
+                        <div class="table-container">
+                            <div class="table-header">
+                                <h3 class="table-title">Список інструктажів</h3>
+                                <div class="table-actions">
+                                    <div class="search-container">
+                                        <i class="fas fa-search search-icon"></i>
+                                        <input type="text" class="search-input no-resize" id="briefingSearch" placeholder="Пошук за нікнеймом...">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Дата</th>
+                                            <th>Інструктор</th>
+                                            <th>Новобранець</th>
+                                            <th>Telegram</th>
+                                            <th>Discord Роль</th>
+                                            <th>Правила</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="briefingTableBody">
+                                        <tr>
+                                            <td colspan="6" class="loading-cell">
+                                                <div class="loading">
+                                                    <div class="spinner"></div>
+                                                    <span>Завантаження даних...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Список персоналу -->
+                    <div id="staff" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Список персоналу</h1>
+                            <p class="page-subtitle">Всі працівники ДКВС та їх статус</p>
+                        </div>
+
+                        <div class="table-container">
+                            <div class="table-header">
+                                <h3 class="table-title">Персонал ДКВС</h3>
+                                <div class="table-actions">
+                                    <div class="search-container">
+                                        <i class="fas fa-search search-icon"></i>
+                                        <input type="text" class="search-input no-resize" id="staffSearch" placeholder="Пошук за ім'ям або email...">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Ім'я</th>
+                                            <th>UID</th>
+                                            <th>Роль</th>
+                                            <th>Статус</th>
+                                            <th>Останній вхід</th>
+                                            <th id="staffActionsHeader">Дії</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="staffTableBody">
+                                        <tr>
+                                            <td colspan="6" class="loading-cell">
+                                                <div class="loading">
+                                                    <div class="spinner"></div>
+                                                    <span>Завантаження персоналу...</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Журнал подій -->
+                    <div id="activities" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Журнал подій</h1>
+                            <p class="page-subtitle">Історія всіх дій в системі</p>
+                        </div>
+
+                        <div class="activities-controls">
+                            <div class="activities-filters">
+                                <button class="filter-btn active" data-filter="all">Всі</button>
+                                <button class="filter-btn" data-filter="convoy">Конвої</button>
+                                <button class="filter-btn" data-filter="blacklist">ЧС</button>
+                                <button class="filter-btn" data-filter="otz">ОТЗ</button>
+                                <button class="filter-btn" data-filter="user">Персонал</button>
+                                <button class="filter-btn" data-filter="system">Система</button>
+                            </div>
+                            <div class="search-container">
+                                <i class="fas fa-search search-icon"></i>
+                                <input type="text" class="search-input no-resize" id="activitiesSearch" placeholder="Пошук подій...">
+                            </div>
+                        </div>
+
+                        <div class="card activities-full-card">
+                            <div id="activitiesList" class="activities-list-full">
+                                <div class="loading">
+                                    <div class="spinner"></div>
+                                    <span>Завантаження журналу подій...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Налаштування -->
+                    <div id="settings" class="page-content hidden">
+                        <div class="page-header">
+                            <h1 class="page-title">Налаштування</h1>
+                            <p class="page-subtitle">Конфігурація системи та керування користувачами</p>
+                        </div>
+
+                        <!-- Вкладки налаштувань -->
+                        <div class="settings-tabs">
+                            <button class="settings-tab active" data-tab="general">
+                                <i class="fas fa-cog"></i>
+                                Загальні
+                            </button>
+                            <button class="settings-tab" data-tab="discord">
+                                <i class="fab fa-discord"></i>
+                                Discord
+                            </button>
+                            <button class="settings-tab" data-tab="users">
+                                <i class="fas fa-users"></i>
+                                Користувачі
+                            </button>
+                            <button class="settings-tab" data-tab="roles">
+                                <i class="fas fa-user-shield"></i>
+                                Ролі
+                            </button>
+                            <button class="settings-tab" data-tab="system">
+                                <i class="fas fa-server"></i>
+                                Система
+                            </button>
+                        </div>
+
+                        <!-- Загальні налаштування -->
+                        <div id="general-settings" class="settings-content active">
+                            <div class="card settings-card">
+                                <h3 class="card-title">Загальні налаштування</h3>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Автоматичне видалення старих записів</label>
+                                    <select class="form-input role-select" id="autoDelete">
+                                        <option value="7">Через 7 днів</option>
+                                        <option value="30">Через 30 днів</option>
+                                        <option value="90">Через 90 днів</option>
+                                        <option value="0">Ніколи</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-primary" onclick="saveSettings()">
+                                        <i class="fas fa-save"></i>
+                                        Зберегти налаштування
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Discord налаштування -->
+                        <div id="discord-settings" class="settings-content">
+                            <div class="card settings-card">
+                                <h3 class="card-title">
+                                    <i class="fab fa-discord"></i>
+                                    Налаштування Discord Webhook
+                                </h3>
+                                
+                                <div class="form-group">
+                                    <label class="form-label">Webhook URL *</label>
+                                    <input type="url" class="form-input no-resize" id="webhookUrl" placeholder="https://discord.com/api/webhooks/...">
+                                    <small class="form-help">Отримайте URL webhook з налаштувань каналу Discord</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Назва бота</label>
+                                    <input type="text" class="form-input no-resize" id="webhookBotName" placeholder="ДКВС Система" value="ДКВС Система">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Аватар бота (URL)</label>
+                                    <input type="url" class="form-input no-resize" id="webhookBotAvatar" placeholder="https://example.com/avatar.png" value="https://upload.wikimedia.org/wikipedia/commons/e/e0/KVS_logo.svg">
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Колір повідомлень</label>
+                                    <select class="form-input role-select" id="webhookColor">
+                                        <option value="3447003">Синій (за замовчуванням)</option>
+                                        <option value="15158332">Червоний</option>
+                                        <option value="3066993">Зелений</option>
+                                        <option value="15105570">Помаранчевий</option>
+                                        <option value="10181046">Фіолетовий</option>
+                                        <option value="15844367">Рожевий</option>
+                                        <option value="16776960">Жовтий</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Повідомлення для конвоїв</label>
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="notifyConvoys" checked>
+                                            <span class="checkbox-custom"></span>
+                                            Надсилати повідомлення про нові конвої
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Повідомлення для чорного списку</label>
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" id="notifyBlacklist" checked>
+                                            <span class="checkbox-custom"></span>
+                                            Надсилати повідомлення про додавання до ЧС
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label class="form-label">Тестування webhook</label>
+                                    <button type="button" class="btn btn-secondary" onclick="testWebhook()">
+                                        <i class="fas fa-paper-plane"></i>
+                                        Відправити тестове повідомлення
+                                    </button>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-primary" onclick="saveDiscordSettings()">
+                                        <i class="fas fa-save"></i>
+                                        Зберегти налаштування Discord
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Користувачі -->
+                        <div id="users-settings" class="settings-content">
+                            <div class="card users-card">
+                                <h3 class="card-title">Керування користувачами</h3>
+                                
+                                <div class="table-container">
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ім'я</th>
+                                                    <th>UID</th>
+                                                    <th>Роль</th>
+                                                    <th>Статус</th>
+                                                    <th>Дії</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="usersTableBody">
+                                                <tr>
+                                                    <td colspan="5" class="loading-cell">
+                                                        <div class="loading">
+                                                            <div class="spinner"></div>
+                                                            <span>Завантаження користувачів...</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ролі -->
+                        <div id="roles-settings" class="settings-content">
+                            <div class="card roles-card">
+                                <h3 class="card-title">Видача ролей</h3>
+                                
+                                <div class="table-container">
+                                    <div class="table-responsive">
+                                        <table class="table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Ім'я</th>
+                                                    <th>UID</th>
+                                                    <th>Поточна роль</th>
+                                                    <th>Нова роль</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="rolesTableBody">
+                                                <tr>
+                                                    <td colspan="4" class="loading-cell">
+                                                        <div class="loading">
+                                                            <div class="spinner"></div>
+                                                            <span>Завантаження користувачів...</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Система -->
+                        <div id="system-settings" class="settings-content">
+                            <div class="card system-card">
+                                <h3 class="card-title">Системна інформація</h3>
+                                
+                                <div class="system-info">
+                                    <div class="info-item">
+                                        <div class="info-label">Версія системи:</div>
+                                        <div class="info-value">1.1.0</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Останнє оновлення:</div>
+                                        <div class="info-value" id="lastUpdate">Завантаження...</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Всього користувачів:</div>
+                                        <div class="info-value" id="totalUsers">0</div>
+                                    </div>
+                                    <div class="info-item">
+                                        <div class="info-label">Активних сесій:</div>
+                                        <div class="info-value" id="activeSessions">0</div>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary" onclick="exportData()">
+                                        <i class="fas fa-download"></i>
+                                        Експорт даних
+                                    </button>
+                                    <button type="button" class="btn btn-warning" onclick="clearOldData()">
+                                        <i class="fas fa-trash"></i>
+                                        Очистити старі дані
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Кастомні модальні вікна -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Підтвердження</h3>
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-message" id="modalMessage">Ви впевнені?</p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" id="modalCancel">
+                    <i class="fas fa-times"></i>
+                    Скасувати
+                </button>
+                <button class="btn btn-primary" id="modalConfirm">
+                    <i class="fas fa-check"></i>
+                    Підтвердити
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальне вікно деталей ЧС -->
+    <div class="modal-overlay" id="blacklistDetailsModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-user-shield"></i>
+                    Деталі запису
+                </h3>
+                <button class="modal-close" onclick="closeBlacklistDetails()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="blacklistDetailsContent">
+                    <!-- Контент буде додано динамічно -->
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" onclick="closeBlacklistDetails()">
+                    <i class="fas fa-times"></i>
+                    Закрити
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальне вікно деталей ОТЗ -->
+    <div class="modal-overlay" id="otzDetailsModal">
+        <div class="modal-container large">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-car"></i>
+                    Деталі ОТЗ
+                </h3>
+                <button class="modal-close" onclick="closeOtzDetails()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="otzDetailsContent">
+                    <!-- Контент буде додано динамічно -->
+                </div>
+            </div>
+            <div class="modal-actions" id="otzDetailsActions">
+                <button class="btn btn-secondary" onclick="closeOtzDetails()">
+                    <i class="fas fa-times"></i>
+                    Закрити
+                </button>
+            </div>
+        </div>
+    </div>
+
+       <!-- Модальне вікно налаштувань профілю -->
+    <div class="modal-overlay" id="profileSettingsModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-user-cog"></i>
+                    Налаштування профілю
+                </h3>
+                <button class="modal-close" onclick="closeProfileSettings()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" style="padding-top: 10px;">
+                <!-- Форма зміни нікнейму -->
+                <form id="changeNameForm" class="profile-form">
+                    <h4 class="form-section-title" style="margin-bottom: 15px; color: var(--text-primary);">Змінити Nick Name</h4>
+                    <div class="form-group">
+                        <label class="form-label">Новий Nick Name</label>
+                        <input type="text" class="form-input no-resize" id="newNickname" required placeholder="Введіть новий Nick Name">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-save"></i>
+                        Зберегти Nick Name
+                    </button>
+                </form>
+
+                <hr style="border: none; border-top: 1px solid var(--border-color); margin: 25px 0;">
+
+                <!-- Форма зміни пароля -->
+                <form id="changePasswordForm" class="profile-form">
+                    <h4 class="form-section-title" style="margin-bottom: 15px; color: var(--text-primary);">Змінити пароль</h4>
+                    <div class="form-group">
+                        <label class="form-label">Поточний пароль</label>
+                        <input type="password" class="form-input no-resize" id="currentPassword" required placeholder="Введіть поточний пароль">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Новий пароль</label>
+                        <input type="password" class="form-input no-resize" id="newPassword" required placeholder="Мінімум 6 символів">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Підтвердіть новий пароль</label>
+                        <input type="password" class="form-input no-resize" id="confirmNewPassword" required placeholder="Повторіть новий пароль">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">
+                        <i class="fas fa-key"></i>
+                        Змінити пароль
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Контейнер для сповіщень -->
+    <div class="notification-container" id="notificationContainer"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
